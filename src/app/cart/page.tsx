@@ -4,7 +4,7 @@ import { Suspense, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import { handleCheckout } from './actions';
+import { createCart, VARIANT_IDS, type Plan } from '@/lib/shopify';
 
 const PLAN_INFO: Record<string, { name: string; price: number; description: string; shippingFee: number }> = {
   single: { name: '12컷 × 1', price: 50000, description: '12컷 슬라이드 필름 1세트 + 빈티지 뷰어 1개', shippingFee: 2500 },
@@ -44,9 +44,16 @@ const CartPage = () => {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.set('plan', plan);
-      await handleCheckout(formData);
+      const variantId = VARIANT_IDS[plan as Plan];
+      if (!variantId) throw new Error(`Unknown plan: ${plan}`);
+
+      const data = await createCart(variantId, quantity);
+
+      if (data.cartCreate.userErrors.length > 0) {
+        throw new Error(data.cartCreate.userErrors[0].message);
+      }
+
+      window.location.href = data.cartCreate.cart.checkoutUrl;
     } catch (err) {
       console.error('Checkout failed:', err);
       setError('체크아웃 생성에 실패했습니다. 다시 시도해주세요.');

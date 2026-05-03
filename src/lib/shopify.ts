@@ -181,13 +181,11 @@ export const createCart = async (
         lines: [{ merchandiseId: variantId, quantity }],
       },
     },
-    isServer: true,
   });
 };
 
 export const getProducts = async (): Promise<ProductsResponse> => {
   return shopifyFetch<ProductsResponse>({
     query: GET_PRODUCTS_QUERY,
-    isServer: true,
   });
 };
